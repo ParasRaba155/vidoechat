@@ -9,13 +9,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var env = flag.String("env", "dev", "the environment of the application")
-
 func main() {
 	flag.Parse()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", echo)
+	hub := newHub()
+
+	go hub.run()
+
+	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		serveWebSocket(hub, w, r)
+	})
+
 	server := http.Server{
 		Addr:         ":8080",
 		Handler:      r,
